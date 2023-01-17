@@ -88,10 +88,6 @@ func FindWindowAndSetOnTop(title string) bool {
 			continue
 		}
 
-		if IsIconic(hwnd) {
-			return false // minimized window
-		}
-
 		if SetTopWindow(hwnd) {
 			return true
 		}
