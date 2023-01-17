@@ -40,7 +40,7 @@ func EnumWindows(enumFunc uintptr, lparam uintptr) (err error) {
 }
 
 func GetWindowText(hwnd uintptr, str *uint16, maxCount int32) (len int32, err error) {
-	r0, _, e1 := syscall.Syscall(procGetWindowTextW.Addr(), 3, hwnd, uintptr(unsafe.Pointer(str)), uintptr(maxCount))
+	r0, _, e1 := syscall.SyscallN(procGetWindowTextW.Addr(), hwnd, uintptr(unsafe.Pointer(str)), uintptr(maxCount))
 	len = int32(r0)
 	if len == 0 {
 		if e1 != 0 {
