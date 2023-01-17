@@ -5,7 +5,6 @@ import (
 	_ "embed"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/signal"
@@ -52,7 +51,7 @@ func init() {
 func UnzipFiles() {
 	Temp = os.TempDir()
 
-	err := ioutil.WriteFile(filepath.Join(Temp, "liblava.zip"), liblava, 0644)
+	err := os.WriteFile(filepath.Join(Temp, "liblava.zip"), liblava, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -66,7 +65,7 @@ func UnzipFiles() {
 		panic(LavaPath)
 	}
 
-	err = ioutil.WriteFile(Temp+"\\PresentMon.zip", PresentMon, 0644)
+	err = os.WriteFile(Temp+"\\PresentMon.zip", PresentMon, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
