@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strconv"
+	"unsafe"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -99,7 +101,19 @@ func (m cpumodel) View() string {
 		}
 
 		for i := range GPUdevices {
-			SetupDiRestartDevices(handle, &GPUdevices[i].Idata) // restart
+			propChangeParams := PropChangeParams{
+				ClassInstallHeader: *MakeClassInstallHeader(DIF_PROPERTYCHANGE),
+				StateChange:        DICS_PROPCHANGE,
+				Scope:              DICS_FLAG_GLOBAL,
+			}
+			for c := 0; c < 2; c++ {
+				if err := SetupDiSetClassInstallParams(handle, &GPUdevices[i].Idata, &propChangeParams.ClassInstallHeader, uint32(unsafe.Sizeof(propChangeParams))); err != nil {
+					log.Println(err)
+				}
+				if err := SetupDiCallClassInstaller(DIF_PROPERTYCHANGE, handle, &GPUdevices[i].Idata); err != nil {
+					log.Println(err)
+				}
+			}
 		}
 
 		return quitTextStyle.Render("set old settings and restarts driver")
@@ -144,7 +158,7 @@ func (m cpumodel) View() string {
 
 func Promt_cpu() {
 	p := tea.NewProgram(initialCPUModel())
-	if err := p.Start(); err != nil {
+	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error: %v", err)
 		os.Exit(1)
 	}

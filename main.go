@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"time"
+	"unsafe"
 
 	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
@@ -20,7 +21,7 @@ func main() {
 
 	if totaltrials == -1 {
 		resultChan := make(chan int, 1)
-		if err := tea.NewProgram(initialModel("Enter how many trials you would like to test for each CPU:", "3", resultChan), tea.WithAltScreen()).Start(); err != nil {
+		if _, err := tea.NewProgram(initialModel("Enter how many trials you would like to test for each CPU:", "3", resultChan), tea.WithAltScreen()).Run(); err != nil {
 			log.Println(err)
 			return
 		}
@@ -29,7 +30,7 @@ func main() {
 
 	if trialtime == -1 {
 		resultChan := make(chan int, 1)
-		if err := tea.NewProgram(initialModel("Enter how many seconds you want each trial to last:", "30", resultChan), tea.WithAltScreen()).Start(); err != nil {
+		if _, err := tea.NewProgram(initialModel("Enter how many seconds you want each trial to last:", "30", resultChan), tea.WithAltScreen()).Run(); err != nil {
 			log.Println(err)
 			return
 		}
@@ -40,7 +41,7 @@ func main() {
 
 	if !cliMode {
 		resultChan := make(chan int, 1)
-		if err := tea.NewProgram(rebootModel{choice: resultChan, choices: []string{fmt.Sprintf("Start Now (%d mins)", estimated), "Set AutoGpuAffinity on startup and reboot"}}, tea.WithAltScreen()).Start(); err != nil {
+		if _, err := tea.NewProgram(rebootModel{choice: resultChan, choices: []string{fmt.Sprintf("Start Now (%d mins)", estimated), "Set AutoGpuAffinity on startup and reboot"}}, tea.WithAltScreen()).Run(); err != nil {
 			log.Println(err)
 			return
 		}
@@ -104,7 +105,7 @@ func main() {
 		tea.NewProgram(progressbarModel{
 			progress: progress.New(progress.WithGradient("#008000", "#00FF00")),
 			callback: resultDone,
-		}).Start()
+		}).Run()
 		resultDone <- struct{}{}
 	}(resultDone)
 
@@ -176,9 +177,30 @@ func SetGPUandRestart(cpubit Bits) {
 		GPUdevices[i].AssignmentSetOverride = cpubit
 		setAffinityPolicy(&GPUdevices[i])
 
-		err := SetupDiRestartDevices(handle, &GPUdevices[i].Idata)
+		propChangeParams := PropChangeParams{
+			ClassInstallHeader: *MakeClassInstallHeader(DIF_PROPERTYCHANGE),
+			StateChange:        DICS_PROPCHANGE,
+			Scope:              DICS_FLAG_GLOBAL,
+		}
+		for c := 0; c < 2; c++ {
+			if err := SetupDiSetClassInstallParams(handle, &GPUdevices[i].Idata, &propChangeParams.ClassInstallHeader, uint32(unsafe.Sizeof(propChangeParams))); err != nil {
+				log.Println(err)
+				return
+			}
+			if err := SetupDiCallClassInstaller(DIF_PROPERTYCHANGE, handle, &GPUdevices[i].Idata); err != nil {
+				log.Println(err)
+				return
+			}
+		}
+
+		DeviceInstallParams, err := SetupDiGetDeviceInstallParams(handle, &GPUdevices[i].Idata)
 		if err != nil {
 			log.Println(err)
+			return
+		}
+
+		if DeviceInstallParams.Flags&DI_NEEDREBOOT != 0 {
+			fmt.Println("Device could not be restarted. Changes will take effect the next time you reboot.")
 		}
 	}
 }
