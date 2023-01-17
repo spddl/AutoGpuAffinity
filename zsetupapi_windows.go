@@ -357,7 +357,7 @@ func SetupDiSetClassInstallParams(deviceInfoSet DevInfo, deviceInfoData *DevInfo
 }
 
 func setupDiClassNameFromGuidEx(classGUID *windows.GUID, className *uint16, classNameSize uint32, requiredSize *uint32, machineName *uint16, reserved uintptr) (err error) {
-	r1, _, e1 := syscall.SyscallN(procSetupDiClassNameFromGuidExW.Addr(), 6, uintptr(unsafe.Pointer(classGUID)), uintptr(unsafe.Pointer(className)), uintptr(classNameSize), uintptr(unsafe.Pointer(requiredSize)), uintptr(unsafe.Pointer(machineName)), uintptr(reserved))
+	r1, _, e1 := syscall.SyscallN(procSetupDiClassNameFromGuidExW.Addr(), uintptr(unsafe.Pointer(classGUID)), uintptr(unsafe.Pointer(className)), uintptr(classNameSize), uintptr(unsafe.Pointer(requiredSize)), uintptr(unsafe.Pointer(machineName)), uintptr(reserved))
 	if r1 == 0 {
 		if e1 != 0 {
 			err = errnoErr(e1)
