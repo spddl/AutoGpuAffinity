@@ -21,14 +21,14 @@ var (
 	procOpenInputDesktop    = user32.MustFindProc("OpenInputDesktop")    // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-openinputdesktop
 	procCloseDesktop        = user32.MustFindProc("CloseDesktop")        // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-closedesktop
 	procIsIconic            = user32.MustFindProc("IsIconic")            // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-isiconic
-	procShowWindow          = user32.MustFindProc("ShowWindow")          // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-showwindow
-	procIsWindowVisible     = user32.MustFindProc("IsWindowVisible")     // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-iswindowvisible
+	// procShowWindow          = user32.MustFindProc("ShowWindow")          // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-showwindow
+	procIsWindowVisible = user32.MustFindProc("IsWindowVisible") // https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-iswindowvisible
 )
 
 const PROCESS_QUERY_LIMITED_INFORMATION = 0x0400
 
 func EnumWindows(enumFunc uintptr, lparam uintptr) (err error) {
-	r1, _, e1 := syscall.Syscall(procEnumWindows.Addr(), 2, uintptr(enumFunc), uintptr(lparam), 0)
+	r1, _, e1 := syscall.SyscallN(procEnumWindows.Addr(), uintptr(enumFunc), uintptr(lparam))
 	if r1 == 0 {
 		if e1 != 0 {
 			err = error(e1)
