@@ -1,4 +1,11 @@
 # AutoGpuAffinity
+[![Downloads][1]][2] [![GitHub stars][3]][4]
+
+[1]: https://img.shields.io/github/downloads/spddl/AutoGpuAffinity/total.svg
+[2]: https://github.com/spddl/AutoGpuAffinity/releases "Downloads"
+
+[3]: https://img.shields.io/github/stars/spddl/AutoGpuAffinity.svg
+[4]: https://github.com/spddl/AutoGpuAffinity/stargazers "GitHub stars"
 
 The idea and concept is from [AMIT](https://github.com/amitxv) ([repository](https://github.com/amitxv/AutoGpuAffinity))
 
