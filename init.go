@@ -2,7 +2,10 @@ package main
 
 import (
 	"log"
+	"os"
 	"strconv"
+
+	"golang.org/x/sys/windows"
 )
 
 var (
@@ -33,6 +36,14 @@ type DefaultSettings struct {
 
 func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	// ENABLE_VIRTUAL_TERMINAL_PROCESSING
+	var handle = windows.Handle(os.Stdout.Fd())
+	var mode uint32
+	if err := windows.GetConsoleMode(handle, &mode); err == nil {
+		mode |= windows.ENABLE_VIRTUAL_TERMINAL_PROCESSING
+		windows.SetConsoleMode(handle, mode)
+	}
 
 	Phys, Cores, Threads, _ = computeCoresAndProcessors()
 	if Threads > Cores {
